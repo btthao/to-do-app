@@ -3,10 +3,12 @@ import { RootState } from "../app/store";
 
 export interface UserState {
   user: string | null;
+  email: string | null;
 }
 
 const initialState: UserState = {
   user: null,
+  email: null,
 };
 
 export const userSlice = createSlice({
@@ -15,9 +17,11 @@ export const userSlice = createSlice({
   reducers: {
     login: (state, action: PayloadAction<UserState>) => {
       state.user = action.payload.user;
+      state.email = action.payload.email;
     },
     logout: (state) => {
       state.user = null;
+      state.email = null;
     },
   },
 });

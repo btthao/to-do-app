@@ -1,31 +1,27 @@
-import type { NextPage } from "next";
+import { signOut } from "firebase/auth";
 import Head from "next/head";
-import { useAppDispatch, useAppSelector } from "../app/hooks";
-import { login, logout, selectUser } from "../features/userSlice";
-import { useEffect } from "react";
-import { useRouter } from "next/router";
-import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../utils/firebase";
+import React from "react";
+import { useAppDispatch } from "../app/hooks";
+import AddItem from "../components/AddItem";
 import Button from "../components/Button";
+import TodoList from "../components/TodoList";
+import useCheckedLogIn from "../components/useCheckedLogIn";
+import { clear } from "../features/todoSlice";
+import { logout } from "../features/userSlice";
+import styles from "../styles/Todo.module.scss";
+import { auth } from "../utils/firebase";
 
-const Home: NextPage = () => {
-  const { user } = useAppSelector(selectUser);
-  const router = useRouter();
+const Home: React.FC = () => {
   const dispatch = useAppDispatch();
+  const { checkedLogIn, user } = useCheckedLogIn();
+
   const logOut = () => {
     signOut(auth).then(() => {
       dispatch(logout());
+      dispatch(clear());
     });
   };
-  useEffect(() => {
-    onAuthStateChanged(auth, (currentUser) => {
-      if (currentUser) {
-        dispatch(login({ user: currentUser.displayName }));
-      } else {
-        router.push("/login");
-      }
-    });
-  }, [dispatch, router]);
+
   return (
     <div>
       <Head>
@@ -33,9 +29,14 @@ const Home: NextPage = () => {
         <meta name="description" content="todo app" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      {user && (
-        <div>
-          <Button onClick={() => logOut()}>Log out</Button>
+      {checkedLogIn && user && (
+        <div className={styles.container}>
+          <h1>Hi {user}!</h1>
+          <Button onClick={logOut}>Log out</Button>
+          <div className={styles.wrapper}>
+            <AddItem />
+            <TodoList />
+          </div>
         </div>
       )}
     </div>

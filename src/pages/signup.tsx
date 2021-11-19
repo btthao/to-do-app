@@ -1,33 +1,32 @@
-import React, { useState } from "react";
-import Button from "../components/Button";
-import Input from "../components/Input";
+import { setDoc } from "@firebase/firestore";
+import { ErrorData } from "@firebase/util";
 import {
   createUserWithEmailAndPassword,
   updateProfile,
   UserCredential,
 } from "firebase/auth";
-import { auth, db } from "../utils/firebase";
-import { setDoc } from "@firebase/firestore";
 import { doc } from "firebase/firestore";
-import { useAppDispatch } from "../app/hooks";
-import { login } from "../features/userSlice";
+import Head from "next/head";
 import { useRouter } from "next/router";
-import { ErrorData } from "@firebase/util";
+import React, { useState } from "react";
+import { useAppDispatch } from "../app/hooks";
+import Button from "../components/Button";
 import Form from "../components/Form";
+import Input from "../components/Input";
+import useCheckedLogIn from "../components/useCheckedLogIn";
+import { login } from "../features/userSlice";
 import styles from "../styles/Form.module.scss";
+import { auth, db } from "../utils/firebase";
 
-interface SignupProps {}
-
-const Signup: React.FC<SignupProps> = ({}) => {
+const Signup: React.FC = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const { checkedLogIn, user } = useCheckedLogIn();
 
-  const signUpToFirebase = (
-    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
-  ) => {
+  const userSignUp = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
     if (username && email && password) {
       createUserWithEmailAndPassword(auth, email, password)
@@ -39,47 +38,54 @@ const Signup: React.FC<SignupProps> = ({}) => {
             user: username,
             todo: [],
           });
-          dispatch(login({ user: username }));
+          dispatch(login({ user: username, email }));
         })
         .then(() => {
           router.push("/");
         })
         .catch((error: ErrorData) => {
-          console.log(error.message);
           alert(error.message);
         });
     } else {
       alert("Please fill in all required fields.");
     }
   };
+
   return (
     <div className={styles.main}>
-      <Form>
-        <Input
-          required
-          type="text"
-          placeholder="username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-        <Input
-          required
-          type="email"
-          placeholder="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <Input
-          required
-          type="password"
-          placeholder="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <Button type="submit" onClick={(e) => signUpToFirebase(e)}>
-          Sign up
-        </Button>
-      </Form>
+      <Head>
+        <title>Sign up</title>
+        <meta name="description" content="todo app - sign up" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+      {checkedLogIn && !user && (
+        <Form>
+          <Input
+            required
+            type="text"
+            placeholder="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+          <Input
+            required
+            type="email"
+            placeholder="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <Input
+            required
+            type="password"
+            placeholder="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <Button type="submit" onClick={userSignUp}>
+            Sign up
+          </Button>
+        </Form>
+      )}
     </div>
   );
 };
